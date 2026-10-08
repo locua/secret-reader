@@ -380,13 +380,40 @@ export async function openEpub(buffer) {
     imageUrls.clear();
   }
 
-  return { meta, spine, toc, loadChapter, dispose };
+  // Cover image: EPUB 3 `cover-image` property, or the EPUB 2 <meta name="cover">.
+  async function cover() {
+    let item = [...manifest.values()].find((i) => i.props.includes('cover-image'));
+    if (!item) {
+      const metaCover = [...opf.getElementsByTagNameNS('*', 'meta')].find((m) => m.getAttribute('name') === 'cover');
+      item = manifest.get(metaCover?.getAttribute('content'));
+    }
+    if (!item || !item.type.startsWith('image/')) return null;
+    const f = getFile(item.path);
+    if (!f) return null;
+    return new Blob([await f.async('arraybuffer')], { type: item.type });
+  }
+
+  return { meta, spine, toc, loadChapter, cover, dispose };
 }
 
-/** Read only the metadata (used when importing). */
+/** Metadata and a small cover thumbnail (used when importing). */
 export async function readMetadata(buffer) {
   const book = await openEpub(buffer);
-  return { ...book.meta, chapters: book.spine.length };
+  let thumb = null;
+  try { thumb = await thumbnail(await book.cover()); } catch { /* no cover */ }
+  return { ...book.meta, chapters: book.spine.length, cover: thumb };
+}
+
+async function thumbnail(blob, width = 240) {
+  if (!blob) return null;
+  const bmp = await createImageBitmap(blob);
+  const scale = Math.min(1, width / bmp.width);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bmp.width * scale);
+  canvas.height = Math.round(bmp.height * scale);
+  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  bmp.close?.();
+  return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85));
 }
 
 // ---------------------------------------------------------------------------

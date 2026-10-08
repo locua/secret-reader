@@ -14,19 +14,19 @@ export function h(html) {
 export function dialog({ title, body, buttons = [{ id: 'ok', label: 'OK', primary: true }], onOpen, width = 440 }) {
   return new Promise((resolve) => {
     const el = h(`
-      <div class="o-dialog-backdrop" role="presentation">
-        <div class="o-dialog" role="dialog" aria-modal="true" aria-label="${esc(title)}" style="width:min(${width}px, calc(100vw - 32px))">
-          <div class="o-dialog-head">
+      <div class="ui-backdrop" role="presentation">
+        <div class="ui-dialog" role="dialog" aria-modal="true" aria-label="${esc(title)}" style="width:min(${width}px, calc(100vw - 32px))">
+          <div class="ui-dialog-head">
             <h2>${esc(title)}</h2>
-            <button class="o-icon-btn" data-close aria-label="Close">${icons.close}</button>
+            <button class="icon-btn" data-close aria-label="Close">${icons.close}</button>
           </div>
-          <div class="o-dialog-body"></div>
-          <div class="o-dialog-foot">
-            ${buttons.map((b) => `<button class="o-btn ${b.primary ? 'primary' : ''}" data-id="${b.id}">${esc(b.label)}</button>`).join('')}
+          <div class="ui-dialog-body"></div>
+          <div class="ui-dialog-foot">
+            ${buttons.map((b) => `<button class="btn ${b.primary ? 'primary' : ''}" data-id="${b.id}">${esc(b.label)}</button>`).join('')}
           </div>
         </div>
       </div>`);
-    const bodyEl = el.querySelector('.o-dialog-body');
+    const bodyEl = el.querySelector('.ui-dialog-body');
     if (typeof body === 'string') bodyEl.innerHTML = body;
     else if (body) bodyEl.append(body);
     const close = (id) => {
@@ -49,7 +49,7 @@ export function dialog({ title, body, buttons = [{ id: 'ok', label: 'OK', primar
     document.addEventListener('keydown', onKey, true);
     document.body.append(el);
     onOpen?.(el);
-    (el.querySelector('input, select') || el.querySelector('.o-btn.primary'))?.focus();
+    (el.querySelector('input, select') || el.querySelector('.btn.primary'))?.focus();
   });
 }
 
@@ -57,7 +57,7 @@ export async function promptText(title, label, value) {
   let input;
   const id = await dialog({
     title,
-    body: `<label class="o-field"><span>${esc(label)}</span><input type="text" value="${esc(value)}" spellcheck="false"></label>`,
+    body: `<label class="field"><span>${esc(label)}</span><input type="text" value="${esc(value)}" spellcheck="false"></label>`,
     buttons: [{ id: 'ok', label: 'OK', primary: true }, { id: 'cancel', label: 'Cancel' }],
     onOpen: (el) => { input = el.querySelector('input'); setTimeout(() => input.select()); },
   });
@@ -66,10 +66,10 @@ export async function promptText(title, label, value) {
 
 /** Small popup menu anchored to `anchor`. items: [{label, icon, action}] */
 export function popupMenu(anchor, items, { align = 'left' } = {}) {
-  document.querySelector('.o-menu')?.remove();
-  const menu = h(`<div class="o-menu" role="menu">${items.map((it, i) => it === '-'
-    ? '<div class="o-menu-sep"></div>'
-    : `<button role="menuitem" data-i="${i}">${it.icon ? icons[it.icon] || it.icon : '<span class="o-menu-gap"></span>'}<span>${esc(it.label)}</span></button>`).join('')}</div>`);
+  document.querySelector('.ui-menu')?.remove();
+  const menu = h(`<div class="ui-menu" role="menu">${items.map((it, i) => it === '-'
+    ? '<div class="ui-menu-sep"></div>'
+    : `<button role="menuitem" data-i="${i}">${it.icon ? icons[it.icon] || it.icon : '<span class="ui-menu-gap"></span>'}<span>${esc(it.label)}</span></button>`).join('')}</div>`);
   document.body.append(menu);
   const r = anchor.getBoundingClientRect();
   const mw = menu.offsetWidth;
@@ -94,9 +94,9 @@ export function popupMenu(anchor, items, { align = 'left' } = {}) {
 
 let toastTimer;
 export function toast(msg) {
-  let el = document.querySelector('.o-toast');
+  let el = document.querySelector('.ui-toast');
   if (!el) {
-    el = h('<div class="o-toast" role="status"></div>');
+    el = h('<div class="ui-toast" role="status"></div>');
     document.body.append(el);
   }
   el.textContent = msg;
@@ -118,8 +118,4 @@ export function relativeTime(ts) {
   y.setDate(now.getDate() - 1);
   if (d.toDateString() === y.toDateString()) return `Yesterday at ${time}`;
   return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: d.getFullYear() === now.getFullYear() ? undefined : 'numeric' });
-}
-
-export function setTabIdentity(title) {
-  document.title = title;
 }

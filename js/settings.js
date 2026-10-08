@@ -1,23 +1,22 @@
-const KEY = 'sr.settings';
+const KEY = 'reader.settings';
 
-export const PANIC_TARGETS = {
-  m365: { label: 'Microsoft 365 home', url: 'https://www.microsoft365.com/' },
-  onedrive: { label: 'OneDrive', url: 'https://onedrive.live.com/' },
-  outlook: { label: 'Outlook', url: 'https://outlook.office.com/mail/' },
-  custom: { label: 'Custom address', url: '' },
+export const THEMES = ['light', 'sepia', 'dark'];
+
+export const FONTS = {
+  serif: { label: 'Serif', stack: 'Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif' },
+  sans: { label: 'Sans-serif', stack: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' },
+  book: { label: 'Book', stack: '"Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif' },
+  mono: { label: 'Monospace', stack: 'ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace' },
 };
 
 const DEFAULTS = {
-  panicKey: 'double',      // 'double' | 'single' | 'off'
-  panicTarget: 'm365',
-  panicUrl: '',
-  initials: '',
-  font: 'Aptos',
-  fontSize: 11,
-  zoom: 100,
-  navOpen: true,
-  plain: false,
-  showProgress: true,
+  theme: 'light',
+  font: 'serif',
+  fontSize: 18,      // px
+  lineHeight: 1.5,
+  zoom: 'fit',       // 'fit' or a percentage number
+  sidebar: true,
+  pageNumbers: true,
 };
 
 let cache;
@@ -35,10 +34,4 @@ export function setSettings(patch) {
   cache = { ...getSettings(), ...patch };
   try { localStorage.setItem(KEY, JSON.stringify(cache)); } catch { /* ignore */ }
   return cache;
-}
-
-export function panicUrl() {
-  const s = getSettings();
-  if (s.panicTarget === 'custom' && /^https?:\/\//i.test(s.panicUrl)) return s.panicUrl;
-  return (PANIC_TARGETS[s.panicTarget] || PANIC_TARGETS.m365).url || PANIC_TARGETS.m365.url;
 }
