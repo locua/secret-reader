@@ -2,10 +2,11 @@
    backstage, dialogs and menus. Page typography lives in book.css. */
 
 :root {
-  --accent: #2f5d50;
+  --accent: #034fa0;
+  --accent-deep: #0f3464;
   --accent-ink: #fff;
-  --accent-soft: rgba(47, 93, 80, .13);
-  --accent-line: #3f7a69;
+  --accent-soft: rgba(3, 79, 160, .12);
+  --accent-line: #034fa0;
   --chrome: #f5f5f4;
   --chrome-2: #fbfbfa;
   --ribbon: #fcfcfb;
@@ -30,9 +31,10 @@
 }
 
 :root[data-theme="dark"] {
-  --accent: #2b4f45;
-  --accent-soft: rgba(120, 190, 168, .16);
-  --accent-line: #7cc2ad;
+  --accent: #0f3464;
+  --accent-deep: #0a2547;
+  --accent-soft: rgba(110, 168, 230, .16);
+  --accent-line: #6ea8e6;
   --chrome: #262626;
   --chrome-2: #2c2c2c;
   --ribbon: #2e2e2e;
@@ -140,7 +142,7 @@ svg { flex: none; }
   color: var(--accent-ink);
   border-radius: 4px 4px 0 0;
 }
-.tab-file:hover { background: var(--accent); filter: brightness(1.12); }
+.tab-file:hover { background: var(--accent-deep); }
 .tabs-spacer { flex: 1; }
 .ribbon-toggle { align-self: center; }
 
