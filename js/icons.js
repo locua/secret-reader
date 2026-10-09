@@ -1,6 +1,9 @@
-const s = (body) =>
-  `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" ` +
+const s = (body, size = 20) =>
+  `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.7" ` +
   `stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+
+// Larger glyphs for the ribbon's big buttons.
+const L = (body) => s(body, 30).replace('stroke-width="1.7"', 'stroke-width="1.4"');
 
 export const icons = {
   logo: s('<path d="M4 5.5c2.7-1.2 5.4-1.2 8 .9 2.6-2.1 5.3-2.1 8-.9v13c-2.7-1.2-5.4-1.2-8 .9-2.6-2.1-5.3-2.1-8-.9z"/><path d="M12 6.4v13"/>'),
@@ -19,4 +22,34 @@ export const icons = {
   open: s('<path d="M4 5.5c2.7-1.2 5.4-1.2 8 .9 2.6-2.1 5.3-2.1 8-.9v13c-2.7-1.2-5.4-1.2-8 .9-2.6-2.1-5.3-2.1-8-.9z"/>'),
   prev: s('<path d="M18 15l-6-6-6 6"/>'),
   next: s('<path d="M6 9l6 6 6-6"/>'),
+  check: s('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
+  caret: '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M9 6l7 6-7 6z"/></svg>',
+  dropdown: '<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M6 9h12l-6 7z"/></svg>',
+  folder: s('<path d="M3.5 7.5V18a1.5 1.5 0 0 0 1.5 1.5h14a1.5 1.5 0 0 0 1.5-1.5V9.5A1.5 1.5 0 0 0 19 8h-7l-2-2.5H5A1.5 1.5 0 0 0 3.5 7z"/>'),
+  doc: s('<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 15.5h6M9 9h2"/>'),
+  alignLeft: s('<path d="M4 6h16M4 10h10M4 14h16M4 18h10"/>'),
+  justify: s('<path d="M4 6h16M4 10h16M4 14h16M4 18h16"/>'),
+  spacing: s('<path d="M11 6h9M11 10h9M11 14h9M11 18h9M5 5v14M3 7l2-2 2 2M3 17l2 2 2-2"/>'),
+  indent: s('<path d="M9 6h11M4 10h16M4 14h16M4 18h12M4 4.5v3l2.5-1.5z"/>'),
+  grow: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><text x="2" y="19" font-size="17" font-family="Georgia, serif" fill="currentColor">A</text><path d="M16.5 8l2.5-3 2.5 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  shrink: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><text x="3" y="19" font-size="13" font-family="Georgia, serif" fill="currentColor">A</text><path d="M14.5 5l2.5 3 2.5-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  chapterPrev: s('<path d="M14 6l-6 6 6 6"/>'),
+  chapterNext: s('<path d="M10 6l6 6-6 6"/>'),
+  navPane: s('<rect x="3.5" y="4.5" width="17" height="15" rx="1.5"/><path d="M9.5 4.5v15M5.5 8.5h2M5.5 11.5h2M5.5 14.5h2"/>'),
+  zoomIn: s('<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5M8 10.5h5M10.5 8v5"/>'),
+  zoomOut: s('<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5M8 10.5h5"/>'),
+  ribbonUp: s('<path d="M7 14l5-5 5 5"/>'),
+  ribbonDown: s('<path d="M7 10l5 5 5-5"/>'),
+
+  bigPrev: L('<path d="M14 6l-6 6 6 6"/><path d="M19 6l-6 6 6 6" opacity=".45"/>'),
+  bigNext: L('<path d="M10 6l6 6-6 6"/><path d="M5 6l6 6-6 6" opacity=".45"/>'),
+  bigNav: L('<rect x="3.5" y="4.5" width="17" height="15" rx="1.5"/><path d="M9.5 4.5v15M5.5 8.5h2M5.5 11.5h2M5.5 14.5h2"/>'),
+  bigMargins: L('<rect x="5" y="3" width="14" height="18" rx="1"/><path d="M8 3v18M16 3v18M5 6h14M5 18h14" stroke-dasharray="1.5 1.5"/>'),
+  bigSize: L('<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 17l6-6M12 11h3v3" />'),
+  bigColor: L('<path d="M12 3.5s-6 6.6-6 10.5a6 6 0 0 0 12 0c0-3.9-6-10.5-6-10.5z"/><path d="M9 14.5a3 3 0 0 0 3 3"/>'),
+  bigOnePage: L('<rect x="6.5" y="3" width="11" height="18" rx="1"/><path d="M9 7h6M9 10h6M9 13h6M9 16h4"/>'),
+  bigWidth: L('<rect x="3" y="5" width="18" height="14" rx="1"/><path d="M6 12h12M8 10l-2 2 2 2M16 10l2 2-2 2"/>'),
+  big100: '<svg viewBox="0 0 30 30" width="30" height="30" aria-hidden="true"><text x="15" y="20" text-anchor="middle" font-size="10.5" font-family="system-ui, sans-serif" font-weight="600" fill="currentColor">100</text><rect x="3" y="5" width="24" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>',
+  bigHeader: L('<path d="M6 3h12v18H6z"/><path d="M8.5 6h7M8.5 18h7" stroke-width="2.2"/><path d="M8.5 10h7M8.5 13h7" opacity=".45"/>'),
+  bigOpen: L('<path d="M3.5 7.5V18a1.5 1.5 0 0 0 1.5 1.5h14a1.5 1.5 0 0 0 1.5-1.5V9.5A1.5 1.5 0 0 0 19 8h-7l-2-2.5H5A1.5 1.5 0 0 0 3.5 7z"/>'),
 };

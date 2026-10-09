@@ -1,0 +1,165 @@
+/* Pages and the book's text. Everything here applies identically to the
+   visible document and the off-screen measuring host, so pagination matches
+   what is displayed. Only `zoom` differs (visible pages only). */
+
+:root {
+  --paper: #fff;
+  --ink: #1d1d1d;
+  --ink-soft: #6b6b6b;
+  --heading: #1e4b6e;
+  --link: #1d5fa8;
+  --rule: #c9c9c9;
+  --page-shadow: 0 0 0 1px rgba(0, 0, 0, .06), 0 1px 4px rgba(0, 0, 0, .14);
+}
+:root[data-theme="sepia"] {
+  --paper: #f7f0e1;
+  --ink: #3a2e22;
+  --ink-soft: #8a7a66;
+  --heading: #6b3f1d;
+  --link: #8a4b14;
+  --rule: #d7c8ab;
+}
+:root[data-theme="dark"] {
+  --paper: #242424;
+  --ink: #dedede;
+  --ink-soft: #8c8c8c;
+  --heading: #8ec5e8;
+  --link: #8ab8f0;
+  --rule: #4a4a4a;
+  --page-shadow: 0 0 0 1px rgba(255, 255, 255, .05), 0 1px 6px rgba(0, 0, 0, .6);
+}
+
+.doc {
+  --zoom: 1;
+  width: max-content;
+  min-width: 100%;
+  padding: 24px 24px 8px;
+}
+@media (max-width: 760px) {
+  .doc { padding: 8px 8px 4px; }
+}
+
+.page {
+  position: relative;
+  width: var(--page-w);
+  height: var(--page-h);
+  padding: var(--mv) var(--mh);
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+}
+.page.tall { height: auto; min-height: var(--page-h); }
+
+.doc .page {
+  zoom: var(--zoom);
+  margin: 0 auto 18px;
+  box-shadow: var(--page-shadow);
+}
+
+.measure {
+  position: absolute;
+  top: 0;
+  left: -20000px;
+  visibility: hidden;
+  pointer-events: none;
+  contain: layout style;
+}
+
+/* Header and footer sit in the top and bottom margins. */
+.page-head, .page-foot {
+  position: absolute;
+  left: var(--mh);
+  right: var(--mh);
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  font: 9pt/1.2 var(--ui-font, system-ui, sans-serif);
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+.page-head { top: calc(var(--mv) / 2); transform: translateY(-50%); }
+.page-head span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.page-foot { bottom: calc(var(--mv) / 2); transform: translateY(50%); justify-content: center; }
+[data-hf="off"] .page-head, [data-hf="off"] .page-foot, .page[data-chstart] .page-head { display: none; }
+
+/* Text --------------------------------------------------------------------- */
+
+.page-body {
+  display: flow-root;
+  font-family: var(--doc-font);
+  font-size: var(--doc-size);
+  line-height: var(--doc-lh);
+  overflow-wrap: break-word;
+  hyphens: manual;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+[data-align="justify"] .page-body { text-align: justify; hyphens: auto; }
+
+.page-body > :first-child { margin-top: 0 !important; }
+
+.page-body p { margin: 0 0 .65em; }
+[data-para="indented"] .page-body p { margin: 0; text-indent: 1.5em; }
+[data-para="indented"] .page-body :is(h1, h2, h3, h4, h5, h6, hr, blockquote, figure, table, ul, ol, pre) + p,
+[data-para="indented"] .page-body > p:first-child[data-p$=".0"],
+[data-para="indented"] .page-body :is(li, td, th, blockquote, figcaption, dd) p { text-indent: 0; }
+.page-body p.cont { text-indent: 0; }
+
+.page-body :is(h1, h2, h3, h4, h5, h6) {
+  margin: 1em 0 .5em;
+  color: var(--heading);
+  line-height: 1.2;
+  font-weight: 600;
+  text-indent: 0;
+  break-after: avoid;
+}
+.page-body h1 { font-size: 1.75em; font-weight: 500; }
+.page-body h2 { font-size: 1.45em; font-weight: 500; }
+.page-body h3 { font-size: 1.2em; }
+.page-body h4 { font-size: 1.05em; }
+.page-body h5, .page-body h6 { font-size: 1em; font-style: italic; }
+
+.page-body a { color: var(--link); text-decoration: underline; text-underline-offset: .15em; }
+
+.page-body img {
+  max-width: 100%;
+  max-height: var(--content-h);
+  height: auto;
+  vertical-align: bottom;
+}
+.page-body p:has(> img:only-child) { text-align: center; text-indent: 0; }
+.page-body figure { margin: 0 0 .8em; text-align: center; }
+.page-body figcaption { font-size: .88em; color: var(--ink-soft); }
+
+.page-body blockquote { margin: 0 0 .8em 1.6em; padding: 0; }
+.page-body :is(ul, ol) { margin: 0 0 .65em; padding-left: 1.6em; }
+.page-body li { margin: 0 0 .2em; }
+.page-body li > p { margin: 0; }
+.page-body dl { margin: 0 0 .65em; }
+.page-body dt { font-weight: 600; }
+.page-body dd { margin: 0 0 .3em 1.6em; }
+
+.page-body hr {
+  width: 30%;
+  margin: 1.2em auto;
+  border: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.page-body pre {
+  margin: 0 0 .8em;
+  font: .85em/1.45 ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+}
+.page-body code, .page-body kbd, .page-body samp { font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace; font-size: .9em; }
+
+.page-body table { width: 100%; margin: 0 0 .8em; border-collapse: collapse; font-size: .92em; }
+.page-body :is(td, th) { padding: .25em .45em; border: 1px solid var(--rule); vertical-align: top; text-indent: 0; }
+.page-body th { font-weight: 600; }
+.page-body caption { padding-bottom: .3em; color: var(--ink-soft); }
+
+.page-body small { font-size: .85em; }
+.page-body mark { background: var(--hl, #ffe066); color: inherit; }
+
+::highlight(search) { background-color: var(--hl, #ffe066); color: inherit; }
+::highlight(search-current) { background-color: var(--hl-current, #ff9f43); color: inherit; }

@@ -4,11 +4,6 @@
 
 import { BLOCK } from './epub.js';
 
-export const PAGE_W = 816;   // 8.5in at 96dpi
-export const PAGE_H = 1056;  // 11in
-export const MARGIN = 96;    // 1in
-export const CONTENT_H = PAGE_H - 2 * MARGIN;
-
 const ATOMIC = new Set(['tr', 'hr', 'img', 'col', 'colgroup']);
 const HEADINGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
 
@@ -24,9 +19,10 @@ export function createPage() {
 /**
  * Paginate one chapter's nodes inside `host` (an unscaled, off-screen
  * container with the same typography as the document) and hand each finished
- * page to `emit`. Every chapter starts on a new page.
+ * page to `emit`. `contentH` is the height of a page's text area in px.
+ * Every chapter starts on a new page.
  */
-export function paginateChapter(nodes, ch, host, emit) {
+export function paginateChapter(nodes, ch, host, emit, contentH) {
   const queue = nodes.slice();
   let page = createPage();
   let body = page.firstChild;
@@ -52,10 +48,10 @@ export function paginateChapter(nodes, ch, host, emit) {
     body.append(node);
     const top0 = body.getBoundingClientRect().top;
     const r = node.getBoundingClientRect();
-    if (r.bottom - top0 <= CONTENT_H) continue;
+    if (r.bottom - top0 <= contentH) continue;
 
     let rest = null;
-    if (r.top - top0 < CONTENT_H) rest = split(node, top0 + CONTENT_H);
+    if (r.top - top0 < contentH) rest = split(node, top0 + contentH);
     if (rest) {
       queue.unshift(rest);
     } else if (body.childElementCount > 1) {

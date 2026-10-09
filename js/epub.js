@@ -372,6 +372,18 @@ export async function openEpub(buffer) {
     return { nodes: [...root.children], words: ctx.words };
   }
 
+  /** Plain text of a chapter, for searching (no conversion, no images). */
+  async function chapterText(ch) {
+    const doc = parseXhtml(await readText(spine[ch]));
+    const body = doc.body ?? doc.getElementsByTagNameNS('*', 'body')[0] ?? doc.documentElement;
+    for (const el of [...body.querySelectorAll('script, style')]) el.remove();
+    // Keep words in neighbouring blocks and table cells apart.
+    for (const el of body.querySelectorAll('p, div, li, td, th, dt, dd, br, h1, h2, h3, h4, h5, h6, blockquote, figcaption, pre, tr')) {
+      el.append(doc.createTextNode(' '));
+    }
+    return text(body);
+  }
+
   async function dispose() {
     for (const p of imageUrls.values()) {
       const url = await p.catch(() => null);
@@ -393,7 +405,7 @@ export async function openEpub(buffer) {
     return new Blob([await f.async('arraybuffer')], { type: item.type });
   }
 
-  return { meta, spine, toc, loadChapter, cover, dispose };
+  return { meta, spine, toc, loadChapter, chapterText, cover, dispose };
 }
 
 /** Metadata and a small cover thumbnail (used when importing). */
