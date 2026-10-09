@@ -6,7 +6,9 @@ const s = (body, size = 20) =>
 const L = (body) => s(body, 30).replace('stroke-width="1.7"', 'stroke-width="1.4"');
 
 export const icons = {
-  logo: s('<path d="M4 5.5c2.7-1.2 5.4-1.2 8 .9 2.6-2.1 5.3-2.1 8-.9v13c-2.7-1.2-5.4-1.2-8 .9-2.6-2.1-5.3-2.1-8-.9z"/><path d="M12 6.4v13"/>'),
+  logo: s('<defs><mask id="logo-knockout"><rect width="24" height="24" fill="#fff"/><rect x="12.4" y="10.4" width="11" height="12.2" rx="2.2" fill="#000"/></mask></defs>' +
+    '<g mask="url(#logo-knockout)"><path d="M3 5.5c2.9-1.3 5.8-1.3 8.7 1 2.9-2.3 5.8-2.3 8.7-1v13c-2.9-1.3-5.8-1.3-8.7 1-2.9-2.3-5.8-2.3-8.7-1z"/><path d="M11.7 6.5v13"/></g>' +
+    '<rect x="14.2" y="15.6" width="7.4" height="5.9" rx="1.2"/><path d="M15.7 15.6v-1.6a2.2 2.2 0 0 1 4.4 0v1.6"/>'),
   back: s('<path d="M15 5l-7 7 7 7"/>'),
   contents: s('<path d="M4 6h16M4 12h10M4 18h13"/>'),
   search: s('<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/>'),

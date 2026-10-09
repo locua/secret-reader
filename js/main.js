@@ -240,7 +240,7 @@ app.innerHTML = `
   ${placeholderPanel('help', `
     <div class="group">
       <div class="group-body">
-        <a class="rb big" href="about.html" title="About Reader">${icons.bigAbout}<span>About<br>Reader</span></a>
+        <a class="rb big" href="about.html" title="About Guarded Reader">${icons.bigAbout}<span>About<br>Guarded Reader</span></a>
       </div>
       <div class="group-label">About</div>
     </div>`)}
@@ -962,7 +962,7 @@ const ACTIONS = [
   ...Object.entries(THEMES).map(([k, t]) => ({ label: `Page color: ${t.label}`, keys: `theme colour ${k === 'dark' ? 'night mode' : ''}`, run: () => update({ theme: k }) })),
   ...Object.entries(PAGE_SIZES).map(([k, p]) => ({ label: `Page size: ${p.label}`, keys: 'layout paper', run: () => update({ pageSize: k }) })),
   ...Object.entries(MARGINS).map(([k, m]) => ({ label: `Margins: ${m.label}`, keys: 'layout', run: () => update({ margins: k }) })),
-  { label: 'About Reader', keys: 'help version info', run: () => { location.href = 'about.html'; } },
+  { label: 'About Guarded Reader', keys: 'help version info', run: () => { location.href = 'about.html'; } },
 ];
 
 function matchActions(q) {
@@ -1167,9 +1167,9 @@ function setTitle() {
   const title = $('#doc-title');
   title.innerHTML = rec
     ? `<span class="tb-doc">${esc(rec.title)}</span>${rec.author ? `<span class="tb-author"> — ${esc(rec.author)}</span>` : ''}`
-    : '<span class="tb-doc">Reader</span>';
+    : '<span class="tb-doc">Guarded Reader</span>';
   title.title = rec ? `${rec.title}${rec.author ? ` — ${rec.author}` : ''}` : '';
-  document.title = rec ? `${rec.title} – Reader` : 'Reader';
+  document.title = rec ? `${rec.title} – Guarded Reader` : 'Guarded Reader';
   app.classList.toggle('no-doc', !rec);
 }
 
