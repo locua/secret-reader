@@ -10,6 +10,9 @@ import {
 } from './settings.js';
 import { icons } from './icons.js';
 import { h, esc, dialog, popupMenu, toast, relativeTime } from './ui.js';
+import { installQuickExit } from './quickexit.js';
+
+installQuickExit();
 
 const LAST_KEY = 'reader.last';
 const LAYOUT_KEYS = ['font', 'fontPt', 'spacing', 'align', 'para', 'pageSize', 'margins'];
@@ -287,6 +290,7 @@ app.innerHTML = `
     <button class="bs-back" data-bs="back" title="Back to the document" aria-label="Back">${icons.back}</button>
     <button class="bs-link" data-bs="open">${icons.folder}<span>Open</span></button>
     <button class="bs-link" data-bs="info">${icons.info}<span>Info</span></button>
+    <a class="bs-link" href="about.html">${icons.help}<span>About</span></a>
     <span class="bs-side-spacer"></span>
     <button class="bs-link" data-bs="close"><span>Close</span></button>
   </nav>

@@ -639,6 +639,7 @@ a.rb { color: inherit; text-decoration: none; }
   font-size: 14px;
 }
 .bs-link:hover { background: rgba(255, 255, 255, .1); }
+a.bs-link { color: inherit; text-decoration: none; }
 .bs-link.active { background: rgba(255, 255, 255, .18); font-weight: 600; }
 .bs-side-spacer { flex: 1; }
 .bs-main {

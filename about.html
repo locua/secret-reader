@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/book.css">
   <script src="js/about.js"></script>
+  <script type="module" src="js/about-page.js"></script>
   <style>
     html, body { height: auto; min-height: 100%; overflow: auto; background: var(--canvas); }
     .about-bar { position: sticky; top: 0; display: flex; justify-content: space-between; gap: 12px; }
@@ -57,6 +58,38 @@
     .support:hover { background: color-mix(in srgb, var(--accent-line) 13%, transparent); }
     .support svg { flex: none; color: #e0464e; }
     .support strong { display: block; color: var(--accent-line); font-size: 1.05em; }
+
+    /* Quick exit panel */
+    .qe {
+      margin: 0 0 1.2em; padding: 1em 1.2em 1.1em;
+      border: 1px solid color-mix(in srgb, #d97706 45%, var(--rule)); border-left: 4px solid #d97706; border-radius: 4px;
+      background: color-mix(in srgb, #f59e0b 10%, var(--paper));
+      font: 14px/1.45 var(--ui-font); color: var(--ink);
+    }
+    .qe-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: .5em; }
+    .qe-head h2 { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--ink); font: 600 16px/1.2 var(--ui-font); }
+    .qe-head h2 svg { color: #d97706; }
+    .qe p { margin: 0 0 .7em; }
+    .qe-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: .45em 0; }
+    .qe label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+    .qe input[type="radio"], .qe input[type="checkbox"] { margin: 0; accent-color: var(--accent-line); }
+    .qe select, .qe input[type="url"] {
+      height: 30px; padding: 0 8px; border: 1px solid var(--line-strong); border-radius: 4px;
+      background: var(--field); color: var(--text); font: inherit;
+    }
+    .qe input[type="url"] { flex: 1; min-width: 200px; }
+    .qe input[type="url"]:disabled { opacity: .55; }
+    .qe input.invalid { border-color: #c62828; }
+    .qe-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: .8em; }
+    .qe-status { flex: 1; min-width: 200px; color: var(--ink-soft); }
+    .qe-saved { color: #2e7d32; opacity: 0; transition: opacity .2s; }
+    .qe-saved.show { opacity: 1; }
+    .qe button {
+      height: 30px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 4px;
+      background: var(--field); color: var(--text); font: inherit; cursor: pointer;
+    }
+    .qe button:hover { border-color: var(--accent-line); }
+    .qe.off .qe-body { opacity: .55; }
   </style>
 </head>
 <body>
@@ -69,6 +102,37 @@
   </header>
 
   <main class="sheet">
+    <section class="qe" id="quick-exit" aria-labelledby="qe-title">
+      <div class="qe-head">
+        <h2 id="qe-title">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5"/><path d="M10 16l4-4-4-4M14 12H4"/></svg>
+          Quick exit
+        </h2>
+        <label><input type="checkbox" id="qe-enabled"> On</label>
+      </div>
+      <div class="qe-body">
+        <p>Press the shortcut on any Guarded Reader page to leave instantly. The page is replaced, so the Back button won’t return to it.</p>
+        <div class="qe-row">
+          <span>Shortcut</span>
+          <select id="qe-key" aria-label="Quick exit shortcut"></select>
+        </div>
+        <div class="qe-row">
+          <span>Go to</span>
+          <label><input type="radio" name="qe-target" value="office"> Microsoft 365 (office.com)</label>
+        </div>
+        <div class="qe-row">
+          <span style="visibility:hidden">Go to</span>
+          <label><input type="radio" name="qe-target" value="custom"> Another website</label>
+          <input type="url" id="qe-url" placeholder="https://example.com" aria-label="Quick exit website" spellcheck="false" autocomplete="off">
+        </div>
+      </div>
+      <div class="qe-foot">
+        <span class="qe-status" id="qe-status" aria-live="polite"></span>
+        <span class="qe-saved" id="qe-saved">Saved ✓</span>
+        <button type="button" id="qe-test">Test it now</button>
+      </div>
+    </section>
+
     <a class="support" href="https://ko-fi.com/shadownaut" target="_blank" rel="noopener noreferrer">
       <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.6c0 5.7-7.5 10.3-7.5 10.3z"/></svg>
       <span><strong>Please Support Guarded Reader.</strong></span>
@@ -96,6 +160,7 @@
 
     <h2>Keyboard shortcuts</h2>
     <table>
+      <tr><td><kbd>Esc</kbd> <kbd>Esc</kbd> <kbd>Esc</kbd></td><td>Quick exit (shortcut can be changed above)</td></tr>
       <tr><td><kbd>Alt</kbd> + <kbd>Q</kbd></td><td>Search the book and commands</td></tr>
       <tr><td><kbd>Enter</kbd> / <kbd>Shift</kbd> + <kbd>Enter</kbd></td><td>Next / previous search result</td></tr>
       <tr><td><kbd>Ctrl</kbd> + <kbd>F</kbd></td><td>Search in the Navigation pane</td></tr>

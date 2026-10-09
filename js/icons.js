@@ -20,6 +20,7 @@ export const icons = {
   more: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>',
   upload: s('<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>'),
   trash: s('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>'),
+  help: s('<circle cx="12" cy="12" r="9"/><path d="M9.6 9.6a2.4 2.4 0 1 1 3.4 2.2c-.6.3-1 .9-1 1.5v.5M12 16.8v.3"/>'),
   info: s('<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'),
   open: s('<path d="M4 5.5c2.7-1.2 5.4-1.2 8 .9 2.6-2.1 5.3-2.1 8-.9v13c-2.7-1.2-5.4-1.2-8 .9-2.6-2.1-5.3-2.1-8-.9z"/>'),
   prev: s('<path d="M18 15l-6-6-6 6"/>'),
