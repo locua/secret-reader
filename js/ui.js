@@ -69,7 +69,7 @@ export function popupMenu(anchor, items, { align = 'left' } = {}) {
   document.querySelector('.ui-menu')?.remove();
   const menu = h(`<div class="ui-menu" role="menu">${items.map((it, i) => it === '-'
     ? '<div class="ui-menu-sep"></div>'
-    : `<button role="menuitem" data-i="${i}">${it.icon ? icons[it.icon] || it.icon : '<span class="ui-menu-gap"></span>'}<span>${esc(it.label)}</span></button>`).join('')}</div>`);
+    : `<button role="menuitem" data-i="${i}"${it.disabled ? ' class="disabled" disabled aria-disabled="true"' : ''}>${it.icon ? icons[it.icon] || it.icon : '<span class="ui-menu-gap"></span>'}<span>${esc(it.label)}</span></button>`).join('')}</div>`);
   document.body.append(menu);
   const r = anchor.getBoundingClientRect();
   const mw = menu.offsetWidth;
@@ -88,7 +88,7 @@ export function popupMenu(anchor, items, { align = 'left' } = {}) {
     close();
     items[b.dataset.i].action?.();
   });
-  menu.querySelector('button')?.focus();
+  (menu.querySelector('button:not(:disabled)') || menu).focus();
   return close;
 }
 

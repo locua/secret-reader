@@ -23,6 +23,7 @@
   --ui-font: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
   --hl: #ffe066;
   --hl-current: #ff9f43;
+  --disabled: #a8a8a4;
   color-scheme: light;
 }
 
@@ -50,6 +51,7 @@
   --menu-shadow: 0 6px 24px rgba(0, 0, 0, .55), 0 1px 3px rgba(0, 0, 0, .4);
   --hl: #8a6d00;
   --hl-current: #c45f00;
+  --disabled: #686866;
   color-scheme: dark;
 }
 
@@ -241,6 +243,8 @@ svg { flex: none; }
   border-radius: 4px 4px 0 0;
 }
 .tab-file:hover { background: var(--accent-deep); }
+.tab-fake, .tab-fake[aria-selected="true"] { color: var(--disabled); }
+.tab-fake[aria-selected="true"]::after { background: var(--disabled); }
 .tabs-spacer { flex: 1; }
 .ribbon-toggle { align-self: center; }
 
@@ -311,6 +315,11 @@ svg { flex: none; }
 }
 .rb:hover { background: var(--hover); }
 a.rb { color: inherit; text-decoration: none; }
+
+/* Placeholder commands: greyed out so only working controls look live. */
+.rb-fake { color: var(--disabled); cursor: default; }
+.rb-fake:hover, .rb-fake:active { background: none; }
+.panel:has(> .group .rb-fake) .group:has(.rb-fake) .group-label { color: var(--disabled); }
 .rb:active { background: var(--press); }
 .rb[aria-pressed="true"] {
   background: var(--accent-soft);
@@ -798,6 +807,8 @@ a.bs-link { color: inherit; text-decoration: none; }
   white-space: pre;
 }
 .ui-menu button:hover, .ui-menu button:focus-visible { background: var(--hover); outline: none; }
+.ui-menu button.disabled { color: var(--disabled); cursor: default; }
+.ui-menu button.disabled:hover { background: none; }
 .ui-menu button svg { width: 18px; height: 18px; color: var(--accent-line); }
 .ui-menu-gap { flex: none; width: 18px; }
 .ui-menu-sep { height: 1px; margin: 4px 6px; background: var(--line); }

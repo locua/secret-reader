@@ -111,7 +111,7 @@ function placeholderPanel(tab, extra = '') {
   const groups = PLACEHOLDER_TABS[tab].map(([name, buttons], g) => `
     <div class="group">
       <div class="group-body">${buttons.map(([label, icon], b) =>
-        `<button class="rb big" data-ph="${tab}.${g}.${b}" title="${esc(label.replace('<br>', ' '))}">${icons[icon]}<span>${label} ${icons.dropdown}</span></button>`).join('')}
+        `<button class="rb big rb-fake" data-ph="${tab}.${g}.${b}" aria-disabled="true" title="${esc(label.replace('<br>', ' '))} (not available)">${icons[icon]}<span>${label} ${icons.dropdown}</span></button>`).join('')}
       </div>
       <div class="group-label">${esc(name)}</div>
     </div>`).join('');
@@ -121,7 +121,7 @@ function placeholderPanel(tab, extra = '') {
 function placeholderItems(id) {
   const [tab, g, b] = id.split('.');
   // Entries have no action: choosing one just closes the menu.
-  return PLACEHOLDER_TABS[tab][g][1][b][2].map((label) => (label === '-' ? '-' : { label }));
+  return PLACEHOLDER_TABS[tab][g][1][b][2].map((label) => (label === '-' ? '-' : { label, disabled: true }));
 }
 
 const app = document.getElementById('app');
@@ -143,9 +143,9 @@ app.innerHTML = `
 <div class="tabs" role="tablist" aria-label="Ribbon tabs">
   <button class="tab tab-file" data-action="file">File</button>
   <button class="tab" role="tab" data-tab="home" aria-selected="true">Home</button>
-  <button class="tab" role="tab" data-tab="insert" aria-selected="false">Insert</button>
+  <button class="tab tab-fake" role="tab" data-tab="insert" aria-selected="false" title="Not available in Guarded Reader">Insert</button>
   <button class="tab" role="tab" data-tab="layout" aria-selected="false">Layout</button>
-  <button class="tab" role="tab" data-tab="references" aria-selected="false">References</button>
+  <button class="tab tab-fake" role="tab" data-tab="references" aria-selected="false" title="Not available in Guarded Reader">References</button>
   <button class="tab" role="tab" data-tab="view" aria-selected="false">View</button>
   <button class="tab" role="tab" data-tab="help" aria-selected="false">Help</button>
   <span class="tabs-spacer"></span>
