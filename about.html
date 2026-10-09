@@ -48,6 +48,15 @@
       font-family: var(--ui-font);
     }
     .open-btn:hover { background: var(--accent-deep); }
+    .support {
+      display: flex; align-items: center; gap: 12px; margin: 0 0 2em; padding: .8em 1.1em;
+      border: 1px solid var(--rule); border-left: 4px solid var(--accent-line); border-radius: 4px;
+      background: color-mix(in srgb, var(--accent-line) 7%, transparent);
+      color: var(--ink) !important; text-decoration: none; font-family: var(--ui-font); font-size: .95em; line-height: 1.4;
+    }
+    .support:hover { background: color-mix(in srgb, var(--accent-line) 13%, transparent); }
+    .support svg { flex: none; color: #e0464e; }
+    .support strong { display: block; color: var(--accent-line); font-size: 1.05em; }
   </style>
 </head>
 <body>
@@ -60,6 +69,11 @@
   </header>
 
   <main class="sheet">
+    <a class="support" href="https://ko-fi.com/shadownaut" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.6c0 5.7-7.5 10.3-7.5 10.3z"/></svg>
+      <span><strong>Please support Reader</strong>Buy me a coffee at ko-fi.com/shadownaut</span>
+    </a>
+
     <h1>Reader</h1>
     <p class="lead">An EPUB reader that looks and works like a word processor.</p>
 
