@@ -46,7 +46,7 @@ export const MARGINS = {
 
 const DEFAULTS = {
   theme: 'light',
-  font: 'georgia',
+  font: 'calibri',
   fontPt: 12,
   spacing: 1.15,
   align: 'left',       // 'left' | 'justify'
@@ -65,7 +65,10 @@ let stored = null;
 export function getSettings() {
   if (!cache) {
     try { stored = JSON.parse(localStorage.getItem(KEY)); } catch { /* private mode */ }
-    cache = { ...DEFAULTS, ...(stored || {}) };
+    // Calibri became the default after Georgia; saved settings always carry
+    // a font, so move the old default over once.
+    if (stored && !(stored.v >= 2) && stored.font === 'georgia') stored.font = 'calibri';
+    cache = { ...DEFAULTS, ...(stored || {}), v: 2 };
     if (!FONTS[cache.font]) cache.font = DEFAULTS.font;
     if (!PAGE_SIZES[cache.pageSize]) cache.pageSize = DEFAULTS.pageSize;
     if (!MARGINS[cache.margins]) cache.margins = DEFAULTS.margins;
