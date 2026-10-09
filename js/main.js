@@ -30,7 +30,8 @@ const state = {
   collapsed: new Set(),
   activeToc: -1,
   pendingAnchor: undefined,
-  search: { query: '', results: [], ranges: [], texts: new Map(), token: 0 },
+  search: { query: '', results: [], ranges: [], texts: new Map(), token: 0, cur: -1, pending: false },
+  tb: { open: false, items: [], active: -1 },
 };
 
 // ---------------------------------------------------------------------------
@@ -40,19 +41,110 @@ const fontOptions = Object.entries(FONTS).map(([k, f]) =>
   `<option value="${k}" style="font-family:${esc(f.stack)}">${esc(f.label)}</option>`).join('');
 const sizeOptions = SIZES.map((v) => `<option value="${v}">${v}</option>`).join('');
 
+// Ribbon tabs that mimic a word processor's but are placeholders: every
+// button opens a dropdown whose entries do nothing.
+const PLACEHOLDER_TABS = {
+  insert: [
+    ['Pages', [
+      ['Cover<br>Page', 'bigCover', ['Classic', 'Modern', 'Minimal', 'Banded', '-', 'Remove cover page']],
+      ['Blank<br>Page', 'bigBlank', ['Insert blank page', 'Insert blank page after this one']],
+      ['Page<br>Break', 'bigBreak', ['Page break', 'Column break', 'Text wrapping break', '-', 'Next page section break', 'Continuous section break']],
+    ]],
+    ['Tables', [
+      ['Table', 'bigTable', ['Insert table…', 'Draw table', 'Convert text to table…', '-', 'Quick tables']],
+    ]],
+    ['Illustrations', [
+      ['Pictures', 'bigPicture', ['This device…', 'Stock images…', 'Online pictures…']],
+      ['Shapes', 'bigShapes', ['Lines', 'Rectangles', 'Basic shapes', 'Block arrows', 'Flowchart', 'Callouts']],
+      ['Chart', 'bigChart', ['Column', 'Line', 'Pie', 'Bar', 'Area']],
+    ]],
+    ['Header & Footer', [
+      ['Header', 'bigHeaderI', ['Blank', 'Blank (three columns)', 'Simple', '-', 'Edit header', 'Remove header']],
+      ['Footer', 'bigFooter', ['Blank', 'Blank (three columns)', 'Simple', '-', 'Edit footer', 'Remove footer']],
+      ['Page<br>Number', 'bigPageNum', ['Top of page', 'Bottom of page', 'Page margins', 'Current position', '-', 'Format page numbers…', 'Remove page numbers']],
+    ]],
+    ['Text', [
+      ['Text<br>Box', 'bigTextBox', ['Simple text box', 'Sidebar', 'Pull quote', '-', 'Draw text box']],
+      ['Drop<br>Cap', 'bigDropCap', ['None', 'Dropped', 'In margin', '-', 'Drop cap options…']],
+    ]],
+    ['Symbols', [
+      ['Equation', 'bigEquation', ['Area of a circle', 'Binomial theorem', 'Pythagorean theorem', 'Quadratic formula', '-', 'Insert new equation']],
+      ['Symbol', 'bigSymbol', ['€  Euro', '£  Pound', '©  Copyright', '®  Registered', '™  Trademark', '±  Plus-minus', '≠  Not equal', '÷  Division', '-', 'More symbols…']],
+    ]],
+  ],
+  references: [
+    ['Table of Contents', [
+      ['Table of<br>Contents', 'bigToc', ['Automatic table 1', 'Automatic table 2', 'Manual table', '-', 'Custom table of contents…', 'Remove table of contents']],
+      ['Add<br>Text', 'bigAddText', ['Do not show in table of contents', 'Level 1', 'Level 2', 'Level 3']],
+      ['Update<br>Table', 'bigUpdate', ['Update page numbers only', 'Update entire table']],
+    ]],
+    ['Footnotes', [
+      ['Insert<br>Footnote', 'bigFootnote', ['Insert footnote', 'Insert endnote', '-', 'Next footnote', 'Show notes']],
+    ]],
+    ['Citations & Bibliography', [
+      ['Insert<br>Citation', 'bigCitation', ['Add new source…', 'Add new placeholder…']],
+      ['Style', 'bigStyle', ['APA', 'Chicago', 'Harvard', 'IEEE', 'MLA']],
+      ['Bibliography', 'bigBiblio', ['Bibliography', 'References', 'Works cited', '-', 'Insert bibliography']],
+    ]],
+    ['Captions', [
+      ['Insert<br>Caption', 'bigCaption', ['Figure', 'Table', 'Equation', '-', 'New label…']],
+      ['Cross-<br>reference', 'bigCrossRef', ['Heading', 'Bookmark', 'Footnote', 'Figure', 'Table']],
+    ]],
+    ['Index', [
+      ['Mark<br>Entry', 'bigMark', ['Mark entry…', 'Mark all…']],
+      ['Insert<br>Index', 'bigIndex', ['Classic', 'Formal', 'Modern', '-', 'Update index']],
+    ]],
+  ],
+  help: [
+    ['Help', [
+      ['Help', 'bigHelp', ['Getting started', 'Keyboard shortcuts', 'What’s new', '-', 'Contact support']],
+      ['Feedback', 'bigFeedback', ['I like something', 'I don’t like something', 'I have a suggestion']],
+      ['Training', 'bigTraining', ['Video tutorials', 'Tips and tricks']],
+    ]],
+  ],
+};
+
+function placeholderPanel(tab, extra = '') {
+  const groups = PLACEHOLDER_TABS[tab].map(([name, buttons], g) => `
+    <div class="group">
+      <div class="group-body">${buttons.map(([label, icon], b) =>
+        `<button class="rb big" data-ph="${tab}.${g}.${b}" title="${esc(label.replace('<br>', ' '))}">${icons[icon]}<span>${label} ${icons.dropdown}</span></button>`).join('')}
+      </div>
+      <div class="group-label">${esc(name)}</div>
+    </div>`).join('');
+  return `<div class="panel" data-panel="${tab}" role="tabpanel" hidden>${groups}${extra}</div>`;
+}
+
+function placeholderItems(id) {
+  const [tab, g, b] = id.split('.');
+  // Entries have no action: choosing one just closes the menu.
+  return PLACEHOLDER_TABS[tab][g][1][b][2].map((label) => (label === '-' ? '-' : { label }));
+}
+
 const app = document.getElementById('app');
 app.className = 'app';
 app.innerHTML = `
 <header class="titlebar">
-  <div class="tb-left"><span class="tb-logo">${icons.logo}</span><span class="tb-app">Reader</span></div>
-  <div class="tb-title" id="doc-title"></div>
+  <div class="tb-left"><span class="tb-logo">${icons.logo}</span><span class="tb-title" id="doc-title"></span></div>
+  <div class="tb-search" role="search">
+    ${icons.search}
+    <input type="search" id="tb-search" placeholder="Search for tools, help, and more (Alt + Q)" aria-label="Search the book and commands"
+      autocomplete="off" spellcheck="false" role="combobox" aria-controls="tb-results" aria-expanded="false" aria-autocomplete="list">
+    <span class="tb-count" id="tb-count" aria-live="polite"></span>
+    <button class="tb-step" data-cmd="hitPrev" title="Previous result (Shift+Enter)" aria-label="Previous result" hidden>${icons.prev}</button>
+    <button class="tb-step" data-cmd="hitNext" title="Next result (Enter)" aria-label="Next result" hidden>${icons.next}</button>
+    <div class="tb-results" id="tb-results" role="listbox" hidden></div>
+  </div>
   <div class="tb-right"><span class="tb-note" title="Books are kept in this browser and never uploaded">Stored on this device</span></div>
 </header>
 <div class="tabs" role="tablist" aria-label="Ribbon tabs">
   <button class="tab tab-file" data-action="file">File</button>
   <button class="tab" role="tab" data-tab="home" aria-selected="true">Home</button>
+  <button class="tab" role="tab" data-tab="insert" aria-selected="false">Insert</button>
   <button class="tab" role="tab" data-tab="layout" aria-selected="false">Layout</button>
+  <button class="tab" role="tab" data-tab="references" aria-selected="false">References</button>
   <button class="tab" role="tab" data-tab="view" aria-selected="false">View</button>
+  <button class="tab" role="tab" data-tab="help" aria-selected="false">Help</button>
   <span class="tabs-spacer"></span>
   <button class="icon-btn ribbon-toggle" data-cmd="ribbon"></button>
 </div>
@@ -96,6 +188,7 @@ app.innerHTML = `
       <div class="group-label">Navigate</div>
     </div>
   </div>
+  ${placeholderPanel('insert')}
   <div class="panel" data-panel="layout" role="tabpanel" hidden>
     <div class="group">
       <div class="group-body">
@@ -118,6 +211,7 @@ app.innerHTML = `
       <div class="group-label">Paragraph</div>
     </div>
   </div>
+  ${placeholderPanel('references')}
   <div class="panel" data-panel="view" role="tabpanel" hidden>
     <div class="group">
       <div class="group-body col checks">
@@ -143,6 +237,13 @@ app.innerHTML = `
       <div class="group-label">Theme</div>
     </div>
   </div>
+  ${placeholderPanel('help', `
+    <div class="group">
+      <div class="group-body">
+        <a class="rb big" href="about.html" title="About Reader">${icons.bigAbout}<span>About<br>Reader</span></a>
+      </div>
+      <div class="group-label">About</div>
+    </div>`)}
 </div>
 <div class="workspace">
   <aside class="navpane" id="navpane" aria-label="Navigation">
@@ -696,28 +797,36 @@ function gotoToc(i) {
 // Search (whole book, plain text; hits highlighted in the visible section)
 
 let searchTimer;
-function onSearchInput() {
+function scheduleSearch(value) {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => runSearch($('#search').value), 250);
+  searchTimer = setTimeout(() => runSearch(value), 250);
 }
 
+/** Search the whole book. The title bar box and the navigation pane share one query. */
 async function runSearch(raw) {
+  clearTimeout(searchTimer);
   const q = raw.trim();
   const s = state.search;
   const token = ++s.token;
+  for (const input of [$('#search'), $('#tb-search')]) {
+    if (input.value.trim() !== q && document.activeElement !== input) input.value = raw;
+  }
   s.query = q;
   s.results = [];
+  s.cur = -1;
+  s.pending = !!(q && state.book);
   const book = state.book;
   $('#results').hidden = !q;
   $('#toc').hidden = !!q;
   $('#np-label').textContent = q ? 'Results' : 'Headings';
   $('#np-count').textContent = '';
   findHits();
+  updateSearchCount();
+  renderTb();
   if (!q || !book) return;
 
   const ql = q.toLowerCase();
-  const resultsEl = $('#results');
-  resultsEl.innerHTML = '<p class="np-empty">Searching…</p>';
+  $('#results').innerHTML = '<p class="np-empty">Searching…</p>';
   for (let ch = 0; ch < book.spine.length && s.results.length < 500; ch++) {
     let t = s.texts.get(ch);
     if (t == null) {
@@ -732,7 +841,15 @@ async function runSearch(raw) {
       s.results.push({ ch, k: k++, before: t.slice(Math.max(0, idx - 40), idx), match: t.slice(idx, idx + q.length), after: t.slice(idx + q.length, idx + q.length + 60), cut: idx > 40 });
     }
   }
+  s.pending = false;
   renderResults();
+  updateSearchCount();
+  renderTb();
+}
+
+function snippet(r, before = 40) {
+  const b = r.before.slice(-before);
+  return `${r.cut || b.length < r.before.length ? '…' : ''}${esc(b)}<mark>${esc(r.match)}</mark>${esc(r.after)}…`;
 }
 
 function renderResults() {
@@ -747,8 +864,20 @@ function renderResults() {
   $('#results').innerHTML = s.results.map((r, i) => {
     const head = r.ch !== last ? `<div class="res-head">${esc(sectionTitle(r.ch))}</div>` : '';
     last = r.ch;
-    return `${head}<button class="res" data-r="${i}">${r.cut ? '…' : ''}${esc(r.before)}<mark>${esc(r.match)}</mark>${esc(r.after)}…</button>`;
+    return `${head}<button class="res${i === s.cur ? ' active' : ''}" data-r="${i}">${snippet(r)}</button>`;
   }).join('');
+}
+
+function updateSearchCount() {
+  const s = state.search;
+  const n = s.results.length;
+  const total = n >= 500 ? '500+' : String(n);
+  let text = '';
+  if (s.query && state.book && !s.pending) {
+    text = !n ? 'No results' : s.cur >= 0 ? `${s.cur + 1} of ${total}` : `${total} result${n === 1 ? '' : 's'}`;
+  }
+  $('#tb-count').textContent = text;
+  for (const b of app.querySelectorAll('.tb-step')) b.hidden = !n;
 }
 
 function findHits() {
@@ -783,18 +912,134 @@ function showHit(k) {
 }
 
 function gotoResult(i) {
-  const r = state.search.results[i];
+  const s = state.search;
+  const r = s.results[i];
   if (!r) return;
+  s.cur = i;
   for (const b of $('#results').querySelectorAll('.res.active')) b.classList.remove('active');
-  $(`#results .res[data-r="${i}"]`)?.classList.add('active');
+  const btn = $(`#results .res[data-r="${i}"]`);
+  btn?.classList.add('active');
+  btn?.scrollIntoView({ block: 'nearest' });
+  updateSearchCount();
+  if (!backstage.hidden) hideBackstage();
   if (r.ch === state.ch && state.pages.length) showHit(r.k);
   else showChapter(r.ch, { hit: r.k });
   if (narrowMQ.matches) toggleNav(false);
 }
 
+/** Find next / previous, as Enter and Shift+Enter do in a word processor. */
+function stepHit(d) {
+  const s = state.search;
+  const n = s.results.length;
+  if (!n) return;
+  gotoResult(s.cur < 0 ? (d > 0 ? 0 : n - 1) : (s.cur + d + n) % n);
+}
+
 function openSearch() {
   toggleNav(true);
   const input = $('#search');
+  input.focus();
+  input.select();
+}
+
+// Title bar search: matching commands ("tools") plus matches in the book.
+const ACTIONS = [
+  { label: 'Open a book…', keys: 'file epub browse load', run: () => openPicker() },
+  { label: 'Recent books', keys: 'file library open', run: () => showBackstage('open') },
+  { label: 'Book info', keys: 'file properties details', book: true, run: () => showBackstage('info') },
+  { label: 'Next section', keys: 'chapter forward', book: true, run: () => goChapter(1) },
+  { label: 'Previous section', keys: 'chapter back', book: true, run: () => goChapter(-1) },
+  { label: 'Navigation pane', keys: 'contents toc chapters headings sidebar', run: () => toggleNav() },
+  { label: 'Increase font size', keys: 'text bigger larger grow', run: () => stepFont(1) },
+  { label: 'Decrease font size', keys: 'text smaller shrink', run: () => stepFont(-1) },
+  { label: 'Justify text', keys: 'align paragraph', run: () => update({ align: 'justify' }) },
+  { label: 'Align text left', keys: 'align paragraph', run: () => update({ align: 'left' }) },
+  { label: 'First-line indent', keys: 'paragraph style', run: () => commands.para() },
+  { label: 'Header & footer', keys: 'page numbers', run: () => update({ pageNumbers: !getSettings().pageNumbers }) },
+  { label: 'Zoom to 100%', keys: 'view', run: () => update({ zoom: 100 }) },
+  { label: 'Zoom to page width', keys: 'view fit', run: () => update({ zoom: 'fit' }) },
+  { label: 'Zoom to one page', keys: 'view fit whole', run: () => update({ zoom: 'page' }) },
+  ...Object.entries(THEMES).map(([k, t]) => ({ label: `Page color: ${t.label}`, keys: `theme colour ${k === 'dark' ? 'night mode' : ''}`, run: () => update({ theme: k }) })),
+  ...Object.entries(PAGE_SIZES).map(([k, p]) => ({ label: `Page size: ${p.label}`, keys: 'layout paper', run: () => update({ pageSize: k }) })),
+  ...Object.entries(MARGINS).map(([k, m]) => ({ label: `Margins: ${m.label}`, keys: 'layout', run: () => update({ margins: k }) })),
+  { label: 'About Reader', keys: 'help version info', run: () => { location.href = 'about.html'; } },
+];
+
+function matchActions(q) {
+  const ql = q.toLowerCase();
+  return ACTIONS.filter((a) => (!a.book || state.book) && `${a.label} ${a.keys}`.toLowerCase().includes(ql)).slice(0, 4);
+}
+
+function renderTb() {
+  const input = $('#tb-search');
+  const box = $('#tb-results');
+  const q = input.value.trim();
+  const tb = state.tb;
+  if (!tb.open || !q) {
+    box.hidden = true;
+    input.setAttribute('aria-expanded', 'false');
+    tb.items = [];
+    tb.active = -1;
+    return;
+  }
+  const items = [];
+  let html = '';
+  const add = (run, inner, cls = '') => {
+    items.push(run);
+    html += `<button class="tbr-item ${cls}" data-tbi="${items.length - 1}" role="option" tabindex="-1">${inner}</button>`;
+  };
+  const acts = matchActions(q);
+  if (acts.length) {
+    html += '<div class="tbr-head">Actions</div>';
+    for (const a of acts) add(a.run, `${icons.bolt}<span>${esc(a.label)}</span>`);
+  }
+  if (state.book) {
+    const s = state.search;
+    html += '<div class="tbr-head">In this book</div>';
+    if (s.query !== q || s.pending) {
+      html += '<p class="tbr-note">Searching…</p>';
+    } else if (!s.results.length) {
+      html += `<p class="tbr-note">No matches for “${esc(q)}”.</p>`;
+    } else {
+      s.results.slice(0, 6).forEach((r, i) => add(() => gotoResult(i),
+        `<span class="tbr-res"><small>${esc(sectionTitle(r.ch))}</small><span>${snippet(r, 28)}</span></span>`));
+      const n = s.results.length;
+      add(() => { toggleNav(true); gotoResult(0); }, `<span>See all ${n >= 500 ? '500+' : n} result${n === 1 ? '' : 's'} in the Navigation pane</span>`, 'tbr-all');
+    }
+  } else if (!acts.length) {
+    html += '<p class="tbr-note">Open a book to search its text.</p>';
+  }
+  tb.items = items;
+  if (tb.active >= items.length) tb.active = -1;
+  box.innerHTML = html;
+  box.hidden = false;
+  input.setAttribute('aria-expanded', 'true');
+  markTbActive();
+}
+
+function markTbActive() {
+  const { active } = state.tb;
+  for (const b of $('#tb-results').querySelectorAll('[data-tbi]')) {
+    const on = Number(b.dataset.tbi) === active;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', String(on));
+    if (on) b.scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function closeTb() {
+  state.tb.open = false;
+  renderTb();
+}
+
+function runTbItem(i) {
+  const run = state.tb.items[i];
+  closeTb();
+  run?.();
+}
+
+function focusTbSearch() {
+  const input = $('#tb-search');
   input.focus();
   input.select();
 }
@@ -881,6 +1126,7 @@ async function openBook(recordOrId, buffer) {
     setTitle();
     renderToc();
     hideBackstage();
+    state.search.query = '';
     if ($('#search').value.trim()) runSearch($('#search').value);
 
     const pos = record.pos;
@@ -918,9 +1164,11 @@ function closeBook({ keepBackstage = false } = {}) {
 
 function setTitle() {
   const rec = state.record;
-  $('#doc-title').innerHTML = rec
+  const title = $('#doc-title');
+  title.innerHTML = rec
     ? `<span class="tb-doc">${esc(rec.title)}</span>${rec.author ? `<span class="tb-author"> — ${esc(rec.author)}</span>` : ''}`
-    : '<span class="tb-doc">No document open</span>';
+    : '<span class="tb-doc">Reader</span>';
+  title.title = rec ? `${rec.title}${rec.author ? ` — ${rec.author}` : ''}` : '';
   document.title = rec ? `${rec.title} – Reader` : 'Reader';
   app.classList.toggle('no-doc', !rec);
 }
@@ -1089,6 +1337,8 @@ const commands = {
   zoomWidth: () => update({ zoom: 'fit' }),
   zoomPage: () => update({ zoom: 'page' }),
   ribbon: () => update({ ribbon: !getSettings().ribbon }),
+  hitNext: () => stepHit(1),
+  hitPrev: () => stepHit(-1),
 };
 
 function selectTab(name) {
@@ -1110,6 +1360,10 @@ app.addEventListener('click', (e) => {
     commands[cmd.dataset.cmd]?.(cmd);
     return;
   }
+  const tbi = t.closest('[data-tbi]');
+  if (tbi) { runTbItem(Number(tbi.dataset.tbi)); return; }
+  const ph = t.closest('[data-ph]');
+  if (ph) { popupMenu(ph, placeholderItems(ph.dataset.ph)); return; }
   const menu = t.closest('[data-menu]');
   if (menu) {
     popupMenu(menu, menuItems(menu.dataset.menu), { align: menu.closest('.statusbar') ? 'right' : 'left' });
@@ -1185,24 +1439,65 @@ $('#chk-nav').addEventListener('change', (e) => toggleNav(e.target.checked));
 $('#chk-hf').addEventListener('change', (e) => update({ pageNumbers: e.target.checked }));
 $('#chk-ribbon').addEventListener('change', (e) => update({ ribbon: e.target.checked }));
 $('#zoom-range').addEventListener('input', (e) => update({ zoom: Number(e.target.value) }));
-$('#search').addEventListener('input', onSearchInput);
+$('#search').addEventListener('input', (e) => scheduleSearch(e.target.value));
 $('#search').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
-    clearTimeout(searchTimer);
     const s = state.search;
-    if (s.query === e.target.value.trim() && s.results.length) {
-      // Enter again steps through results.
-      const cur = Number($('#results .res.active')?.dataset.r ?? -1);
-      gotoResult((cur + (e.shiftKey ? -1 : 1) + s.results.length) % s.results.length);
-    } else {
-      runSearch(e.target.value);
-    }
+    if (s.query === e.target.value.trim() && s.results.length) stepHit(e.shiftKey ? -1 : 1);
+    else runSearch(e.target.value);
   } else if (e.key === 'Escape') {
     e.target.value = '';
     runSearch('');
   }
 });
+
+const tbInput = $('#tb-search');
+tbInput.addEventListener('input', () => {
+  state.tb.open = true;
+  state.tb.active = -1;
+  renderTb();
+  scheduleSearch(tbInput.value);
+});
+tbInput.addEventListener('focus', () => {
+  state.tb.open = true;
+  renderTb();
+});
+tbInput.addEventListener('keydown', async (e) => {
+  const tb = state.tb;
+  const n = tb.items.length;
+  if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && n) {
+    e.preventDefault();
+    if (!tb.open) { tb.open = true; renderTb(); }
+    tb.active = e.key === 'ArrowDown' ? (tb.active + 1) % n : (tb.active <= 0 ? n - 1 : tb.active - 1);
+    markTbActive();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (tb.open && tb.active >= 0) { runTbItem(tb.active); return; }
+    const q = tbInput.value.trim();
+    if (!q) return;
+    closeTb();
+    if (state.search.query !== q || state.search.pending) {
+      await runSearch(tbInput.value);
+      if (state.search.query === q && state.search.results.length) gotoResult(0);
+    } else {
+      stepHit(e.shiftKey ? -1 : 1);
+    }
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    if (tb.open && tbInput.value) closeTb();
+    else {
+      tbInput.value = '';
+      runSearch('');
+      canvas.focus({ preventScroll: true });
+    }
+  }
+});
+document.addEventListener('pointerdown', (e) => {
+  if (state.tb.open && !e.target.closest('.tb-search')) closeTb();
+});
+$('#tb-results').addEventListener('pointerdown', (e) => e.preventDefault()); // keep focus in the box
+
 fileInput.addEventListener('change', () => importFile(fileInput.files[0]));
 canvas.addEventListener('scroll', onScroll, { passive: true });
 
@@ -1216,7 +1511,13 @@ new ResizeObserver(() => {
   if (typeof getSettings().zoom !== 'number' || state.zoom !== effectiveZoom()) applyZoom();
 }).observe(canvas);
 
+function syncSearchPlaceholder() {
+  tbInput.placeholder = narrowMQ.matches ? 'Search' : 'Search for tools, help, and more (Alt + Q)';
+}
+syncSearchPlaceholder();
+
 narrowMQ.addEventListener('change', () => {
+  syncSearchPlaceholder();
   state.navMobile = false;
   syncNav();
   syncControls();
@@ -1231,6 +1532,11 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   if (document.querySelector('.ui-backdrop')) return;
+  if (e.altKey && !mod && (e.code === 'KeyQ' || key.toLowerCase() === 'q')) {
+    e.preventDefault();
+    focusTbSearch();
+    return;
+  }
   if (!backstage.hidden) {
     if (key === 'Escape' && state.book) hideBackstage();
     return;

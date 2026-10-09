@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="About Reader: an EPUB reader laid out like a word processor. Books stay on your device.">
+  <title>About Reader</title>
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/book.css">
+  <script src="js/about.js"></script>
+  <style>
+    html, body { height: auto; min-height: 100%; overflow: auto; background: var(--canvas); }
+    .about-bar { position: sticky; top: 0; display: flex; justify-content: space-between; gap: 12px; }
+    .about-bar a { color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; }
+    .about-bar a:hover { background: rgba(255, 255, 255, .15); }
+    .sheet {
+      width: min(816px, calc(100% - 32px));
+      margin: 28px auto 48px;
+      padding: clamp(28px, 8vw, 96px);
+      background: var(--paper);
+      color: var(--ink);
+      box-shadow: var(--page-shadow);
+      font: 16px/1.6 Georgia, "DejaVu Serif", serif;
+    }
+    .sheet h1, .sheet h2 { color: var(--heading); font-weight: 500; line-height: 1.2; }
+    .sheet h1 { margin: 0 0 .2em; font-size: 2.2em; }
+    .sheet h2 { margin: 1.6em 0 .5em; font-size: 1.35em; }
+    .sheet .lead { margin: 0 0 1.4em; color: var(--ink-soft); font-size: 1.1em; }
+    .sheet p, .sheet li { margin: 0 0 .6em; }
+    .sheet ul { padding-left: 1.4em; }
+    .sheet a { color: var(--link); }
+    .sheet table { width: 100%; border-collapse: collapse; font-size: .95em; }
+    .sheet td { padding: .35em .5em; border-bottom: 1px solid var(--rule); vertical-align: top; }
+    .sheet td:first-child { width: 40%; white-space: nowrap; }
+    kbd {
+      display: inline-block;
+      padding: 0 .4em;
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+      font: .85em/1.6 ui-monospace, Menlo, Consolas, monospace;
+    }
+    .open-btn {
+      display: inline-flex; align-items: center; gap: 8px; margin-top: .4em; padding: .5em 1.1em;
+      border-radius: 4px; background: var(--accent); color: var(--accent-ink) !important; text-decoration: none;
+      font-family: var(--ui-font);
+    }
+    .open-btn:hover { background: var(--accent-deep); }
+  </style>
+</head>
+<body>
+  <header class="titlebar about-bar">
+    <a href="./" title="Back to Reader">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      Back to Reader
+    </a>
+    <span class="tb-note">About</span>
+  </header>
+
+  <main class="sheet">
+    <h1>Reader</h1>
+    <p class="lead">An EPUB reader that looks and works like a word processor.</p>
+
+    <p>Reader opens <code>.epub</code> books in your browser and lays each chapter out as printed pages: a ribbon of formatting controls at the top, a navigation pane with the book’s contents at the side, and a status bar along the bottom.</p>
+    <p><a class="open-btn" href="./">Open Reader</a></p>
+
+    <h2>Your books stay on your device</h2>
+    <p>Books you open are stored in this browser only (IndexedDB) together with your reading position. Nothing is uploaded and there is no server: Reader is a set of static files. Clearing your browser’s site data removes the stored books.</p>
+
+    <h2>What it does</h2>
+    <ul>
+      <li>Change the font, size, line spacing, alignment and paragraph style; the pages reflow to match.</li>
+      <li>Choose a page size (Letter, A4, A5, 6″ × 9″), margins and page colour (white, sepia or dark).</li>
+      <li>Jump to any chapter or section from the Navigation pane.</li>
+      <li>Search the whole book from the search box in the title bar or the Navigation pane. Matches are highlighted on the page.</li>
+      <li>Zoom to 100%, the page width or a whole page.</li>
+      <li>Reopen recent books from <strong>File</strong>; each one opens where you left off.</li>
+    </ul>
+    <p>The Insert and References tabs are for show: their menus do nothing.</p>
+
+    <h2>Keyboard shortcuts</h2>
+    <table>
+      <tr><td><kbd>Alt</kbd> + <kbd>Q</kbd></td><td>Search the book and commands</td></tr>
+      <tr><td><kbd>Enter</kbd> / <kbd>Shift</kbd> + <kbd>Enter</kbd></td><td>Next / previous search result</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + <kbd>F</kbd></td><td>Search in the Navigation pane</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + <kbd>O</kbd></td><td>Open a book</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + <kbd>]</kbd> / <kbd>Ctrl</kbd> + <kbd>[</kbd></td><td>Increase / decrease font size</td></tr>
+      <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td>Previous / next page</td></tr>
+      <tr><td><kbd>Page Up</kbd> / <kbd>Page Down</kbd></td><td>Scroll; at either end, move to the previous / next section</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + mouse wheel</td><td>Zoom</td></tr>
+    </table>
+
+    <h2>Credits</h2>
+    <p>EPUB files are unzipped with <a href="https://stuk.github.io/jszip/" rel="noopener noreferrer">JSZip</a> (<a href="vendor/jszip-LICENSE.md">MIT licence</a>).</p>
+  </main>
+</body>
+</html>
